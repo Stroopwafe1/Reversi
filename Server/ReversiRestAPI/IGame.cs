@@ -14,5 +14,6 @@
         Colour DominantColour();
         bool PossibleMove(int row, int column);
         bool DoMove(int row, int column);
+        bool HasWaitingPlayer();
     }
 }

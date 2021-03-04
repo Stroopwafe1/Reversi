@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -331,6 +333,12 @@ namespace ReversiRestAPI {
             }
 
             return false;
+        }
+
+        public bool HasWaitingPlayer() {
+            bool player1Empty = string.IsNullOrEmpty(Player1Token);
+            bool player2Empty = string.IsNullOrEmpty(Player2Token);
+            return player1Empty ^ player2Empty;
         }
     }
 }
