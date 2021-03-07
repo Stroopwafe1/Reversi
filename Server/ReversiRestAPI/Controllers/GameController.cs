@@ -48,7 +48,7 @@ namespace ReversiRestAPI.Controllers {
         public ActionResult<Game> GetGameByTokenReq(string token) {
             if (!(token.StartsWith('G') || token.StartsWith('P')))
                 return BadRequest();
-            Game game = GetGameByToken(token);
+            Game game = iRepository.GetGame(token);
             if (game == null)
                 return NotFound();
             return Ok(game);
@@ -56,7 +56,7 @@ namespace ReversiRestAPI.Controllers {
 
         [HttpGet("{token}/turn")]
         public ActionResult<Colour> GetTurn(string token) {
-            Game game = GetGameByToken(token);
+            Game game = iRepository.GetGame(token);
             if (game == null)
                 return NotFound();
             return Ok(game.Turn);
@@ -66,7 +66,7 @@ namespace ReversiRestAPI.Controllers {
         public ActionResult<bool> DoMove([FromBody] MoveRequest moveRequest, bool pass) {
             if (moveRequest == null || moveRequest?.Coordinates == null || string.IsNullOrEmpty(moveRequest?.GameToken) || string.IsNullOrEmpty(moveRequest?.PlayerToken))
                 return BadRequest();
-            Game game = GetGameByToken(moveRequest.GameToken);
+            Game game = iRepository.GetGame(moveRequest.GameToken);
 
             //Check if it's even the player's turn
             if ((moveRequest.PlayerToken == game.Player1Token && game.Turn != Colour.White) || (moveRequest.PlayerToken == game.Player2Token && game.Turn != Colour.White))
@@ -83,16 +83,6 @@ namespace ReversiRestAPI.Controllers {
             if (sr == null || string.IsNullOrEmpty(sr?.GameToken) || string.IsNullOrEmpty(sr?.PlayerToken))
                 return BadRequest();
             return Ok(true);
-        }
-
-        [NonAction]
-        public Game GetGameByToken(string token) {
-            Game game = null;
-            if (token.StartsWith('G'))
-                game = iRepository.GetGames().FirstOrDefault(g => g.Token == token);
-            else if (token.StartsWith('P'))
-                game = iRepository.GetGames().FirstOrDefault(g => g.Player1Token == token || g.Player2Token == token);
-            return game;
         }
     }
 }

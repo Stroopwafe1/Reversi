@@ -3,6 +3,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace ReversiRestAPI {
     public class Game : IGame {
@@ -13,15 +14,18 @@ namespace ReversiRestAPI {
         public string Token { get; set; }
         public string Player1Token { get; set; }
         public string Player2Token { get; set; }
+        public string FENNotation { get; set; }
         public Colour[,] Board { get; set; }
         public Colour Turn { get; set; }
 
         public Game() {
             SetUp();
+            FENNotation = GenerateFEN();
         }
 
         private void SetUp() {
-            Board = new Colour[8, 8];
+            Board = GetBoardFromFEN("8/8/8/3WB3/3BW3/8/8/8");
+            /*Board = new Colour[8, 8];
             for (int row = 0; row < Board.GetLength(0); row++) {
                 for (int col = 0; col < Board.GetLength(1); col++) {
                     Board[row, col] = Colour.None;
@@ -30,7 +34,70 @@ namespace ReversiRestAPI {
             Board[3, 3] = Colour.White;
             Board[4, 4] = Colour.White;
             Board[3, 4] = Colour.Black;
-            Board[4, 3] = Colour.Black;
+            Board[4, 3] = Colour.Black;*/
+        }
+
+        public string GenerateFEN() {
+            //FEN notation is a way of describing the positions on a board, used mostly for chess.
+            //It's split per row with a '/', numbers indicate the number of whitespace before that piece
+            //Starting position should be 8/8/8/3WB3/3BW3/8/8/8
+            StringBuilder FENBuilder = new StringBuilder();
+            for (int row = 0; row < Board.GetLength(0); row++) {
+                int noPieceCount = 0;
+                for (int col = 0; col < Board.GetLength(1); col++) {
+                    switch (Board[row, col]) {
+                        case Colour.White:
+                            if(noPieceCount > 0)
+                                FENBuilder.Append(noPieceCount);
+                            FENBuilder.Append('W');
+                            noPieceCount = 0;
+                            break;
+                        case Colour.Black:
+                            if (noPieceCount > 0)
+                                FENBuilder.Append(noPieceCount);
+                            FENBuilder.Append('B');
+                            noPieceCount = 0;
+                            break;
+                        case Colour.None:
+                            noPieceCount++;
+                            break;
+                    }
+                }
+                FENBuilder.Append(noPieceCount);
+                if (row != Board.GetLength(0) - 1)
+                    FENBuilder.Append('/');
+            }
+            return FENBuilder.ToString();
+        }
+
+        public Colour[,] GetBoardFromFEN(string FENNotation) {
+            Colour[,] returnValue = new Colour[8, 8];
+            string[] rows = FENNotation.Split('/');
+            for(int i = 0; i < rows.Length; i++) {
+                string row = rows[i];
+                if (row.Length == 1) {//If the row is only 1 character, we can be sure that it's all whitespace
+                    for (int j = 0; j < returnValue.GetLength(1); j++)
+                        returnValue[i, j] = Colour.None;
+                    continue;
+                }
+                byte skip = 0;
+                foreach(char c in row) {
+                    if (char.IsDigit(c)) {
+                        byte whiteSpace = byte.Parse(c.ToString());
+                        for (byte j = skip; j < whiteSpace + skip; j++) {
+                            returnValue[i, j] = Colour.None;
+                        }
+                        skip = whiteSpace;
+                    } else {
+                        if (c == 'W')
+                            returnValue[i, skip] = Colour.White;
+                        else
+                            returnValue[i, skip] = Colour.Black;
+                        skip++;
+                    }
+                }
+            }
+            return returnValue;
         }
 
         public Colour DominantColour() {
