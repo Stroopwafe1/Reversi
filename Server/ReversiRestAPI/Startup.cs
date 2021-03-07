@@ -19,7 +19,7 @@ namespace ReversiRestAPI {
             services.AddControllers();
             services.AddMvc().AddNewtonsoftJson();
 
-            services.AddScoped<IGameRepository, GameRepository>();
+            services.AddSingleton<IGameRepository, GameAccessLayer>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
